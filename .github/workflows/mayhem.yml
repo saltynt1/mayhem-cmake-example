@@ -2,6 +2,7 @@ name: Mayhem
 on:
   push:
   pull_request:
+  workflow_call:
   workflow_dispatch:
 
 env:
@@ -44,33 +45,16 @@ jobs:
         with:
           context: .
           push: true
-          file: ./mayhem/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
     
-    outputs:
-      image: ${{ steps.meta.outputs.tags }}
-
-  mayhem:
-    needs: build
-    name: 'fuzz ${{ matrix.mayhemfile }}'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        mayhemfile:
-          - mayhem/Mayhemfile
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Start analysis for ${{ matrix.mayhemfile }}
+      - name: Start analysis
         uses: ForAllSecure/mcode-action@v1
         with:
           mayhem-token: ${{ secrets.MAYHEM_TOKEN }}
-          args: --image ${{ needs.build.outputs.image }} --file ${{ matrix.mayhemfile }} --duration 300
+          args: --image ${{ steps.meta.outputs.tags }}
           sarif-output: sarif
-          
+
       - name: Upload SARIF file(s)
         uses: github/codeql-action/upload-sarif@v2
         with:
