@@ -40,13 +40,14 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v2
         with:
           context: .
-          push: true
-          file: mayhem/Dockerfile
+          file: ./mayhem/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+              "NPM_TOKEN=${{ secrets.TOKEN }}"
+          push: true
     
     outputs:
       image: ${{ steps.meta.outputs.tags }}
